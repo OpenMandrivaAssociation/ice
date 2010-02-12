@@ -1,437 +1,368 @@
-%define	build_java 0
+%define major 33
+%define libname %mklibname %{name} %{major}
 
 Name:		ice
 Version:	3.3.1
-Summary:	Files common to all Ice packages 
-Release:	%mkrel 1%
-License:	GPL
-Group:		System Environment/Libraries
+Release:	%mkrel 1
+Summary:	The Ice base runtime and services
+
+Group:		Networking/WWW
+License:	GPLv2 with exceptions
 URL:		http://www.zeroc.com/
-Source0:	Ice-%{version}.tar.gz
-Source1:	Ice-rpmbuild-%{version}.tar.gz
-%if %{build_java} == 0
-Patch0:		Ice-no-java.patch
-%endif
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root
+Source0:	http://www.zeroc.com/download/Ice/3.3/Ice-%{version}.tar.gz
+# Extracted from http://zeroc.com/download/Ice/3.3/ice-3.3.1-1.src.rpm
+Source1:        Ice-rpmbuild-%{version}.tar.gz
+# Man pages courtesy of Francisco Moya's Debian packages
+Source2:        Ice-3.3.0-man-pages.tbz
+Source8:        icegridgui
+Source9:        IceGridAdmin.desktop
+Source10:       Ice-README.Mandriva
+# Don't build the demo or test directories
+Patch0:         Ice-3.3-dont-build-demo-test.patch
+# Don't put manifest in jar; don't build demo or test; use system jgoodies
+Patch1:         Ice-3.3.1-java-build.patch
+# Remove reference to Windows L&F
+Patch2:         Ice-3.3.1-jgoodies.patch
+# http://www.zeroc.com/forums/patches/4275-patch-1-ice-3-3-1-slice2html-creates-bad-links.html
+Patch3:         ice-3.3.1-patch1.txt
+# http://www.zeroc.com/forums/patches/4340-patch-2-ice-3-3-1-slice-compilers-abort.html
+Patch4:         slice.patch.txt
+# http://www.zeroc.com/forums/patches/4423-patch-3-ice-3-3-1-net-only-fix-random-endpoint-selection.html
+Patch5:         patch-rand.txt
 
-%define	soversion 33
-%define dotnetversion 3.3.1
-%define dotnetpolicyversion 3.3
+Patch6:         ice-php53.patch
 
-%define formsversion 1.2.0
-%define looksversion 2.1.4
-%define dbversion 4.6.21
+Patch7:         Ice-3.3.1-openssl.patch
 
-BuildRequires:	openssl-devel >= 0.9.7a
-BuildRequires:	db4.6-devel >= 4.6.21
-BuildRequires:	jpackage-utils
-BuildRequires:	mcpp-devel >= 2.7.2
+# Fix redhat initscripts for mdv and change user in server scripts 
+# from "ice" to "iceuser" to match the config
+Patch8:		Ice-rpmbuild-3.3.1-fix-initscripts-for-mdv.patch
+
+Patch9:         ice-3.3.1-fix-db-include.patch
+
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+
+# Ice doesn't officially support ppc64 at all
+# sparc64 doesnt have mono
+ExcludeArch:    ppc64 sparc64
+
+BuildRequires:	db4-devel
+BuildRequires:	db4.8
+BuildRequires:	expat-devel
+BuildRequires:	openssl-devel
 BuildRequires:	bzip2-devel
-BuildRequires:	libexpat-devel >= 1.95.7
-BuildRequires:	python-devel >= 2.4.3
-BuildRequires:	php-devel >= 5.1.6
-BuildRequires:	ruby-devel
-BuildRequires:	mono >= 1.2.6, mono-devel >= 1.2.6
+BuildRequires:	ant
+BuildRequires:	ant-nodeps
+BuildRequires:	jpackage-utils
+BuildRequires:	php
+BuildRequires:	php-devel
+BuildRequires:	ruby >= 1.8
+BuildRequires:	ruby < 1.9
+BuildRequires:	ruby-devel >= 1.8
+BuildRequires:	ruby-devel < 1.9
+BuildRequires:	python-devel
+BuildRequires:	mono
+BuildRequires:	mono-devel
+BuildRequires:	mcpp-devel >= 2.7.1
+BuildRequires:	dos2unix
+
+BuildRequires:  java-rpmbuild
+
+BuildRequires:  jgoodies-forms
+BuildRequires:	jgoodies-looks
+BuildRequires:  imagemagick
+BuildRequires:  desktop-file-utils
+
+Requires:	%{libname} = %{version}-%{release}
 
 %description
 Ice is a modern alternative to object middleware such as CORBA or
 COM/DCOM/COM+.  It is easy to learn, yet provides a powerful network
 infrastructure for demanding technical applications. It features an
-object-oriented specification language, easy to use C++, .NET, Java,
-Python, Ruby, and PHP mappings, a highly efficient protocol, 
-asynchronous method invocation and dispatch, dynamic transport 
-plug-ins, TCP/IP and UDP/IP support, SSL-based security, a firewall
-solution, and much more.
+object-oriented specification language, easy to use C++, C#, Java,
+Python, Ruby, PHP, and Visual Basic mappings, a highly efficient
+protocol, asynchronous method invocation and dispatch, dynamic
+transport plug-ins, TCP/IP and UDP/IP support, SSL-based security, a
+firewall solution, and much more.
 
-%package	mono
-Summary:	The Ice runtime for .NET (mono)
-Group:		System Environment/Libraries
-Requires:	ice = %{version}-%{release}, mono-core >= 1.2.2
+# All of the other Ice packages also get built by this SRPM.
 
-%description mono
-The Ice runtime for .NET (mono).
+%package -n %{libname}
+Summary:	Ice shared libraries
+Group:		System/Libraries
 
-%if %{build_java}
+%description -n %{libname}
+This package contains Ice shared libraries.
+
+%package servers
+Summary:	Ice services to run through /etc/rc.d/init.d
+Group:		Development/Other
+Requires:	%{name} = %{version}-%{release}
+# Requirements for the users
+Requires(pre):	shadow-utils
+# Requirements for the init.d services
+%if %mdkversion < 201010
+Requires(post):	rpm-helper
+Requires(preun): rpm-helper
+%endif
+%description servers
+Ice services to run through /etc/rc.d/init.d
+
+%package devel
+Summary:	Tools for developing Ice applications in C++
+Group:		Development/C++
+Provides:	ice-c++-devel = %{version}-%{release}
+Requires:	%{libname} = %{version}-%{release}
+%description devel
+Tools for developing Ice applications in C++.
+
 %package java
 Summary:	The Ice runtime for Java
-Group:		System Environment/Libraries
-Requires:	ice = %{version}-%{release}, db46-java,
-
+Group:		System/Libraries
+Requires:	java >= 1.5.0
+Requires:	%{libname} = %{version}-%{release}
+Requires:	db4.8
 %description java
-The Ice runtime for Java.
+The Ice runtime for Java
 
 %package java-devel
 Summary:	Tools for developing Ice applications in Java
-Group:		Development/Tools
-Requires:	ice-java = %{version}-%{release}, ice-libs = %{version}-%{release}
-
+Group:		Development/Java
+Requires:	%{name}-java = %{version}-%{release}
 %description java-devel
 Tools for developing Ice applications in Java.
-%endif
 
-%package libs
-Summary:	The Ice runtime for C++
-Group:		System Environment/Libraries
-Requires:	ice = %{version}-%{release}, db46
+%package -n icegrid-gui
+Summary:	IceGrid Admin Tool
+Group:		Development/Other
+Requires:	java
+Requires:	%{name}-java = %{version}-%{release}
+Requires:	%{libname} = %{version}-%{release}
+Requires:	jgoodies-forms
+Requires:	jgoodies-looks
+Requires:	jpackage-utils
+%description -n icegrid-gui
+Graphical administration tool for IceGrid
 
-%description libs
-The Ice runtime for C++
+%package csharp
+Summary:	The Ice runtime for C#
+Group:		System/Libraries
+Provides:	ice-dotnet = %{version}-%{release}
+Requires:	%{libname} = %{version}-%{release}
+Requires:	mono >= 1.2.2
+%description csharp
+The Ice runtime for C#
 
-%package utils
-Summary:	Ice utilities and admin tools.
-Group:		Applications/System
-Requires:	ice-libs = %{version}-%{release}
-
-%description utils
-Admin tools to manage Ice servers (IceGrid, IceStorm, IceBox etc.),
-plus various Ice-related utilities.
-
-%package servers
-Summary:	Ice servers and related files.
-Group:		System Environment/Daemons
-Requires:	ice-utils = %{version}-%{release}
-Requires:	ice-mono = %{version}-%{release}
-
-%description servers
-Ice servers: glacier2router, icebox, icegridnode, icegridregistry, 
-icebox, iceboxnet, icepatch2server and related files.
-
-%package c++-devel
-Summary:	Tools, libraries and headers for developing Ice applications in C++
-Group:		Development/Tools
-Requires:	ice-libs = %{version}-%{release}
-
-%description c++-devel
-Tools, libraries and headers for developing Ice applications in C++.
-
-%package mono-devel
+%package csharp-devel
 Summary:	Tools for developing Ice applications in C#
-Group:		Development/Tools
-Requires:	ice-mono = %{version}-%{release}, ice-libs = %{version}-%{release}, pkgconfig
-
-%description mono-devel
+Group:		Development/Other
+Requires:	%{name}-csharp = %{version}-%{release}
+Requires:	pkgconfig
+%description csharp-devel
 Tools for developing Ice applications in C#.
 
 %package ruby
-Summary:	The Ice runtime for Ruby
-Group:		System Environment/Libraries
-Requires:	ice-libs = %{version}-%{release}, ruby
-
+Summary:	The Ice runtime for Ruby applications
+Group:		Development/Ruby
+Requires:	%{libname} = %{version}-%{release}
+Requires:	ruby >= 1.8
+Requires:	ruby < 1.9
 %description ruby
-The Ice runtime for Ruby.
+The Ice runtime for Ruby applications.
 
 %package ruby-devel
 Summary:	Tools for developing Ice applications in Ruby
-Group:		Development/Tools
-Requires:	ice-ruby = %{version}-%{release}
-
+Group:		Development/Ruby
+Requires:	%{name}-ruby = %{version}-%{release}
 %description ruby-devel
 Tools for developing Ice applications in Ruby.
 
-%package python
-Summary:	The Ice runtime for Python
-Group:		System Environment/Libraries
-Requires:	ice-libs = %{version}-%{release}
+%package -n python-%{name}
+Summary:	The Ice runtime for Python applications
+Group:		Development/Python
+Requires:	%{libname} = %{version}-%{release}
+Requires:	python >= 2.3.4
+%description -n python-%{name}
+The Ice runtime for Python applications.
 
-%description python
-The Ice runtime for Python.
-
-%package python-devel
+%package -n python-%{name}-devel
 Summary:	Tools for developing Ice applications in Python
-Group:		Development/Tools
-Requires:	ice-python = %{version}-%{release}
-
-%description python-devel
+Group:		Development/Python
+Requires:	python-%{name} = %{version}-%{release}
+%description -n python-%{name}-devel
 Tools for developing Ice applications in Python.
 
-%package php
-Summary:	The Ice runtime for PHP
-Group:		System Environment/Libraries
-Requires:	ice = %{version}-%{release}
+%package -n php-%{name}
+Summary:	The Ice runtime for PHP applications
+Group:		System/Libraries
+Requires:	%{libname} = %{version}-%{release}
+Requires:	php
 
-%description php
-The Ice runtime for PHP.
+%description -n php-%{name}
+The Ice runtime for PHP applications.
 
 %prep
-
-%setup -q -n Ice-%{version}
-%setup -q -n Ice-%{version} -T -D -b 1
-%patch0 -p1 -b .no-java
+%setup -n Ice-%{version} -q
+%patch0 -p1
+%patch1 -p1
+%patch2 -p1
+%patch3 -p1
+%patch4 -p1
+%patch5 -p1
+%patch6 -p1
+%patch7 -p1
+%patch9 -p1
+%setup -q -n Ice-rpmbuild-%{version} -T -b 1
+%patch8 -p1 -b .formdv
+%setup -q -n Ice-3.3.0-man-pages -T -b 2
 
 %build
+# Set the CLASSPATH correctly for the Java compile
+export CLASSPATH=`build-classpath db4.8 jgoodies-forms jgoodies-looks`
 
-%make
-#pushd cpp/src
-#%make OPTIMIZE=yes embedded_runpath_prefix=""
-#popd
+# Set JAVA_HOME
+export JAVA_HOME=%{java_home}
 
-#pushd py
-#%make OPTIMIZE=yes embedded_runpath_prefix=""
-#popd
-#
-#pushd php
-#%make OPTIMIZE=yes embedded_runpath_prefix=""
-#popd
+# Compile the main Ice runtime
+cd %{_builddir}/Ice-%{version}
+make CXXFLAGS="%{optflags} -fPIC" CFLAGS="%{optflags} -fPIC" embedded_runpath_prefix=""
 
-#if %{ruby}
-#pushd rb
-#%make OPTIMIZE=yes embedded_runpath_prefix=""
-#popd
+# Rebuild the Java ImportKey class
+cd %{_builddir}/Ice-%{version}/cpp/src/ca
+rm *.class
+javac ImportKey.java
 
-#pushd java
-#export CLASSPATH=`build-classpath db-%{dbversion} jgoodies-forms-%{formsversion} jgoodies-looks-%{looksversion} proguard`
-#JGOODIES_FORMS=`find-jar jgoodies-forms-%{formsversion}`
-#JGOODIES_LOOKS=`find-jar jgoodies-looks-%{looksversion}`
+# Create the IceGrid icon
+cd %{_builddir}/Ice-%{version}/java
+cd resources/icons
+convert icegrid.ico temp.png
+mv temp-8.png icegrid.png
+rm temp*.png
 
-#ant -Dice.mapping=java5 -Dbuild.suffix=java5 -Djgoodies.forms=$JGOODIES_FORMS -Djgoodies.looks=$JGOODIES_LOOKS jar
-
-#ant -Dice.mapping=java2 -Dbuild.suffix=java2 jar
-
-#popd 
-
-#%if %{mono}
-#pushd cs/src
-#%make OPTIMIZE=yes
-#popd
-#%endif
 
 %install
-
 rm -rf %{buildroot}
+mkdir -p %{buildroot}
 
-#mkdir -p %{buildroot}/lib
-%makeinstall_std
-#popd cpp
-#%makeinstall_std embedded_runpath_prefix=""
-#pushd
+# Do the basic "make install"
+cd %{_builddir}/Ice-%{version}
+make prefix=%{buildroot} GACINSTALL=yes GAC_ROOT=%{buildroot}%{_libdir} embedded_runpath_prefix="" install
 
-#pushd py
-#%makeinstall embedded_runpath_prefix=""
-#popd
-
-#pushd php
-#%makeinstall
-#popd
-
-mkdir -p %{buildroot}%{_sysconfdir}/php.d
-cat << EOF > %{buildroot}%{_sysconfdir}/php.d/ice.ini
-extension=IcePHP.so
-EOF
-
-%if %{build_java}
-#
-# IceGridGUI
-#
+# Move Java stuff where it should be
 mkdir -p %{buildroot}%{_javadir}
-cp -p $RPM_BUILD_DIR/Ice-%{version}/java/libjava5/IceGridGUI.jar %{buildroot}%{_javadir}/IceGridGUI-%{version}.jar
-ln -s IceGridGUI-%{version}.jar %{buildroot}%{_javadir}/IceGridGUI.jar 
-cp -p $RPM_BUILD_DIR/Ice-%{version}/java/bin/icegridgui.rpm %{buildroot}%{_bindir}/icegridgui
-mkdir -p %{buildroot}%{_docdir}/%{name}-%{version}/help
-cp -Rp $RPM_BUILD_DIR/Ice-%{version}/java/resources/IceGridAdmin %{buildroot}%{_docdir}/%{name}-%{version}/help
-
-cp -p $RPM_BUILD_DIR/Ice-%{version}/java/libjava5/ant-ice.jar %{buildroot}%{_javadir}/ant-ice-%{version}.jar
-ln -s ant-ice-%{version}.jar %{buildroot}%{_javadir}/ant-ice.jar 
-%endif
-#
-# Mono: for iceboxnet.exe and GAC symlinks
-#
-#pushd cs
-#%makeinstall GACINSTALL=yes GAC_ROOT=%{buildroot}%{_prefix}/lib
-#popd
-
-#
-# .NET spec files (for mono-devel)
-#
-if test ! -d %{buildroot}%{_libdir}/pkgconfig
-then
-    mv %{buildroot}/lib/pkgconfig %{buildroot}%{_libdir}
-fi
-
-#
-# initrd files (for servers)
-#
-mkdir -p %{buildroot}/%{_sysconfdir}
-cp ../Ice-rpmbuild-%{version}/*.conf %{buildroot}/%{_sysconfdir}
-mkdir -p %{buildroot}/%{_initrddir}
-for i in icegridregistry icegridnode glacier2router ; do
-    cp ../Ice-rpmbuild-%{version}/$i.redhat %{buildroot}/%{_initrddir}/$i
-done
-
-install ../ice.pth %{buildroot}/%{python_sitearch}/ice.pth
-
-#
-# Cleanup extra files
-#
-rm -fr %{buildroot}/doc/reference
-rm -fr %{buildroot}/slice
-rm -f %{buildroot}%{_libdir}/libIceStormService.so
-
-%if %{build_java}
-pushd java
-ant -Dice.mapping=java5 -Dbuild.suffix=java5 -Dprefix=%{buildroot} install
-ant -Dice.mapping=java2 -Dbuild.suffix=java2 -Dprefix=%{buildroot} install
-
-mkdir -p %{buildroot}%{_javadir}
+mv %{buildroot}/lib/ant-ice.jar %{buildroot}%{_javadir}/ant-ice-%{version}.jar
+ln -s ant-ice-%{version}.jar %{buildroot}%{_javadir}/ant-ice.jar
 mv %{buildroot}/lib/Ice.jar %{buildroot}%{_javadir}/Ice-%{version}.jar
-ln -s  Ice-%{version}.jar %{buildroot}%{_javadir}/Ice.jar 
-mv %{buildroot}/lib/java2/Ice.jar %{buildroot}%{_javadir}/Ice-java2-%{version}.jar
-ln -s Ice-java2-%{version}.jar %{buildroot}%{_javadir}/Ice-java2.jar
-popd
-%endif
+ln -s Ice-%{version}.jar %{buildroot}%{_javadir}/Ice.jar
 
-#
-# Mono
-#
-cd $RPM_BUILD_DIR/Ice-%{version}/cs
-make prefix=%{buildroot} GACINSTALL=yes GAC_ROOT=%{buildroot}%{_prefix}/lib install
 
-#
-# Slice  files
-#
-mkdir -p %{buildroot}%{_datadir}/Ice-%{version}
-mv %{buildroot}/slice %{buildroot}%{_datadir}/Ice-%{version}
+# Install the IceGrid GUI
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mv %{buildroot}/lib/IceGridGUI.jar %{buildroot}%{_datadir}/%{name}
+mkdir -p %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/
+cp -p %{_builddir}/Ice-%{version}/java/resources/icons/icegrid.png \
+        %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/
+mkdir -p %{buildroot}%{_bindir}
+cp -p %{SOURCE8} %{buildroot}%{_bindir}
+sed -i -e "s#DIR#%{_datadir}/%{name}#" %{buildroot}%{_bindir}/icegridgui
+desktop-file-install \
+        --dir=%{buildroot}%{_datadir}/applications \
+        %{SOURCE9}
 
-#
-# Cleanup extra files
-#
-rm -fr %{buildroot}/help
-rm -f %{buildroot}/lib/IceGridGUI.jar %{buildroot}/lib/ant-ice.jar
-rm -f %{buildroot}/bin/iceboxnet.exe
+# Move other rpm-specific files into the right place (README, service stuff)
+mkdir -p %{buildroot}%{_defaultdocdir}/%{name}
+cp -p %{SOURCE10} %{buildroot}/%{_defaultdocdir}/%{name}/README.Mandriva
+cp -p %{_builddir}/Ice-rpmbuild-%{version}/ice.ini %{buildroot}/ice.ini
 
-for f in Ice Glacier2 IceBox IceGrid IcePatch2 IceStorm
-do 
-     rm -r %{buildroot}%{_prefix}/lib/mono/$f
+# Install the servers
+mkdir -p %{buildroot}%{_sysconfdir}
+cp -p %{_builddir}/Ice-rpmbuild-%{version}/*.conf %{buildroot}%{_sysconfdir}
+mkdir -p %{buildroot}%{_initrddir}
+for i in icegridregistry icegridnode glacier2router
+do
+    cp -p %{_builddir}/Ice-rpmbuild-%{version}/$i.redhat %{buildroot}%{_initrddir}/$i
+done
+mkdir -p %{buildroot}%{_localstatedir}/lib/icegrid
+
+# "make install" assumes it's going into a directory under /opt.
+# Move things to where they should be in an RPM setting (adapted from
+# the original ZeroC srpm).
+mkdir -p %{buildroot}%{_bindir}
+mv %{buildroot}/bin/* %{buildroot}%{_bindir}
+mkdir -p %{buildroot}%{_includedir}
+mv %{buildroot}/include/* %{buildroot}%{_includedir}
+mkdir -p %{buildroot}%{_libdir}
+# There are a couple of files that end up installed in /lib, not %{_libdir},
+# so we try this move too.
+mv %{buildroot}/%{_lib}/* %{buildroot}%{_libdir}
+mv %{buildroot}/lib/* %{buildroot}%{_libdir} || true
+mkdir -p %{buildroot}%{_defaultdocdir}/icegrid-gui
+mv %{buildroot}/help/IceGridAdmin %{buildroot}%{_defaultdocdir}/icegrid-gui
+
+# Copy the man pages into the correct directory
+mkdir -p %{buildroot}%{_mandir}/man1
+cp -p %{_builddir}/Ice-3.3.0-man-pages/*.1 %{buildroot}%{_mandir}/man1
+
+# Fix the encoding and line-endings of all the IceGridAdmin documentation files
+cd %{buildroot}%{_defaultdocdir}/icegrid-gui/IceGridAdmin
+chmod a-x *
+for f in *.js *.css;
+do
+    dos2unix $f
+done
+for f in helpman_topicinit.js icegridadmin_navigation.js \
+    IceGridAdmin_popup_html.js zoom_pageinfo.js;
+do
+    iconv -f ISO88591 -t UTF8 $f -o $f.tmp
+    mv $f.tmp $f
 done
 
-rm -r %{buildroot}/lib/pkgconfig
+# .NET spec files (for csharp-devel) -- convert the paths
+for f in IceGrid Glacier2 IceBox Ice IceStorm IcePatch2;
+do 
+    sed -i -e "s#/lib/#%{_libdir}/#" %{buildroot}%{_libdir}/pkgconfig/$f.pc
+    sed -i -e "s#mono_root}/usr#mono_root}#" %{buildroot}%{_libdir}/pkgconfig/$f.pc
+done
+
+# Put the PHP stuff into the right place
+mkdir -p %{buildroot}%{_sysconfdir}/php.d
+mv %{buildroot}/ice.ini %{buildroot}%{_sysconfdir}/php.d
+mkdir -p %{buildroot}%{_libdir}/php/extensions/
+mv %{buildroot}%{_libdir}/IcePHP.so %{buildroot}%{_libdir}/php/extensions/
+
+# Also Ruby and Python -- remove all shebang lines while we're at it
+for f in %{buildroot}/python/Ice.py %{buildroot}/ruby/*.rb;
+do
+    grep -v '/usr/bin/env' $f > $f.tmp
+    mv $f.tmp $f
+done
+mkdir -p %{buildroot}%{ruby_sitearchdir}
+mv %{buildroot}/ruby/* %{buildroot}%{ruby_sitearchdir}
+mkdir -p %{buildroot}%{python_sitearch}/Ice
+mv %{buildroot}/python/* %{buildroot}%{python_sitearch}/Ice
+cp -p %{_builddir}/Ice-rpmbuild-%{version}/ice.pth %{buildroot}%{python_sitearch}
+
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mv %{buildroot}/config/* %{buildroot}%{_datadir}/%{name}
+mv %{buildroot}/slice %{buildroot}%{_datadir}/%{name}
+# Somehow, some files under "slice" end up with executable permissions -- ??
+find %{buildroot}%{_datadir}/%{name} -name "*.ice" | xargs chmod a-x
+
+# Move the ImportKey.class file -- it'll be in %{_libdir} because of the moves earlier
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mv %{buildroot}%{_libdir}/ImportKey.class %{buildroot}%{_datadir}/%{name}
+
+# Put the license files in as documentation
+mkdir -p %{buildroot}%{_defaultdocdir}/%{name}
+mv %{buildroot}/ICE_LICENSE %{buildroot}%{_defaultdocdir}/%{name}/ICE_LICENSE
+mv %{buildroot}/LICENSE %{buildroot}%{_defaultdocdir}/%{name}/LICENSE
+
 
 %clean
 rm -rf %{buildroot}
 
-%files
-%defattr(-, root, root, -)
-%dir %{_datadir}/Ice-%{version}
-%{_datadir}/Ice-%{version}/slice
-
-%files mono
-%defattr(-, root, root, -)
-%dir %{_libdir}/mono/gac/Glacier2
-%{_libdir}/mono/gac/Glacier2/%{dotnetversion}.*/
-%dir %{_libdir}/mono/gac/Ice
-%{_libdir}/mono/gac/Ice/%{dotnetversion}.*/
-%dir %{_libdir}/mono/gac/IceBox
-%{_libdir}/mono/gac/IceBox/%{dotnetversion}.*/
-%dir %{_libdir}/mono/gac/IceGrid
-%{_libdir}/mono/gac/IceGrid/%{dotnetversion}.*/
-%dir %{_libdir}/mono/gac/IcePatch2
-%{_libdir}/mono/gac/IcePatch2/%{dotnetversion}.*/
-%dir %{_libdir}/mono/gac/IceStorm
-%{_libdir}/mono/gac/IceStorm/%{dotnetversion}.*/
-%dir %{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.Glacier2
-%{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.Glacier2/0.*/
-%dir %{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.Ice
-%{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.Ice/0.*/
-%dir %{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IceBox
-%{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IceBox/0.*/
-%dir %{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IceGrid
-%{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IceGrid/0.*/
-%dir %{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IcePatch2
-%{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IcePatch2/0.*/
-%dir %{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IceStorm
-%{_libdir}/mono/gac/policy.%{dotnetpolicyversion}.IceStorm/0.*/
-
-%if %build_java
-%files java
-%defattr(-, root, root, -)
-%{_javadir}/Ice-%{version}.jar
-%{_javadir}/Ice.jar
-%{_javadir}/Ice-java2-%{version}.jar
-%{_javadir}/Ice-java2.jar
-
-%files java-devel
-%defattr(-, root, root, -)
-%{_bindir}/slice2java
-%{_bindir}/slice2freezej
-%{_javadir}/ant-ice-%{version}.jar
-%{_javadir}/ant-ice.jar
-%endif
-
-%files libs
-%defattr(-, root, root, -)
-%{_libdir}/libFreeze.so.%{version}
-%{_libdir}/libFreeze.so.%{soversion}
-%{_libdir}/libGlacier2.so.%{version}
-%{_libdir}/libGlacier2.so.%{soversion}
-%{_libdir}/libIceBox.so.%{version}
-%{_libdir}/libIceBox.so.%{soversion}
-%{_libdir}/libIcePatch2.so.%{version}
-%{_libdir}/libIcePatch2.so.%{soversion}
-%{_libdir}/libIce.so.%{version}
-%{_libdir}/libIce.so.%{soversion}
-%{_libdir}/libIceSSL.so.%{version}
-%{_libdir}/libIceSSL.so.%{soversion}
-%{_libdir}/libIceStorm.so.%{version}
-%{_libdir}/libIceStorm.so.%{soversion}
-%{_libdir}/libIceUtil.so.%{version}
-%{_libdir}/libIceUtil.so.%{soversion}
-%{_libdir}/libSlice.so.%{version}
-%{_libdir}/libSlice.so.%{soversion}
-%{_libdir}/libIceGrid.so.%{version}
-%{_libdir}/libIceGrid.so.%{soversion}
-
-%files utils
-%defattr(-, root, root, -)
-%{_libdir}/libIceXML.so.%{version}
-%{_libdir}/libIceXML.so.%{soversion}
-%{_bindir}/dumpdb
-%{_bindir}/transformdb
-%{_bindir}/iceboxadmin
-%{_bindir}/icepatch2calc
-%{_bindir}/icepatch2client
-%{_bindir}/icestormadmin
-%{_bindir}/slice2docbook
-%{_bindir}/slice2html
-%{_bindir}/icegridadmin
-%{_bindir}/icegridgui
-%{_bindir}/iceca
-%{_javadir}/IceGridGUI-%{version}.jar
-%{_javadir}/IceGridGUI.jar
-%{doc} %{name}-%{version}/help
-%dir %{_datadir}/Ice-%{version}
-%{_datadir}/Ice-%{version}/ImportKey.class
-%attr(755,root,root) %{_datadir}/Ice-%{version}/convertssl.py*
-
-%files servers
-%defattr(-, root, root, -)
-%{_bindir}/glacier2router
-%{_bindir}/icebox
-%{_bindir}/iceboxnet.exe
-%{_bindir}/icegridnode
-%{_bindir}/icegridregistry
-%{_bindir}/icepatch2server
-%{_bindir}/icestormmigrate
-%{_libdir}/libIceStormService.so.%{version}
-%{_libdir}/libIceStormService.so.%{soversion}
-%dir %{_datadir}/Ice-%{version}
-%{_datadir}/Ice-%{version}/templates.xml
-%attr(755,root,root) %{_datadir}/Ice-%{version}/upgradeicegrid.py*
-%{_datadir}/Ice-%{version}/icegrid-slice.3.1.ice.gz
-%{_datadir}/Ice-%{version}/icegrid-slice.3.2.ice.gz
-%{_datadir}/Ice-%{version}/icegrid-slice.3.3.ice.gz
-%attr(755,root,root) %{_initrddir}/icegridregistry
-%attr(755,root,root) %{_initrddir}/icegridnode
-%attr(755,root,root) %{_initrddir}/glacier2router
-%config(noreplace) %{_sysconfdir}/icegridregistry.conf
-%config(noreplace) %{_sysconfdir}/icegridnode.conf
-%config(noreplace) %{_sysconfdir}/glacier2router.conf
-
 %pre servers
-%_pre_groupadd ice
-%_pre_useradd %{_localstatedir}/lib/ice /sbin/nologin ice
-test -d %{_localstatedir}/lib/ice/icegrid/registry || \
-       mkdir -p %{_localstatedir}/lib/ice/icegrid/registry; chown -R ice.ice %{_localstatedir}/lib/ice
-test -d %{_localstatedir}/lib/ice/icegrid/node1 || \
-       mkdir -p %{_localstatedir}/lib/ice/icegrid/node1; chown -R ice.ice %{_localstatedir}/lib/ice
+%_pre_useradd iceuser %{_localstatedir}/lib/icegrid /bin/sh
 
 %post servers
 %_post_service icegridregistry
@@ -439,15 +370,94 @@ test -d %{_localstatedir}/lib/ice/icegrid/node1 || \
 %_post_service glacier2router
 
 %preun servers
-%_preun_service icegridnode
-%_preun_service icegridregistry
-%_preun_service glacier2router
+if [ $1 = 0 ]; then
+        %_preun_service icegridregistry
+        %_preun_service icegridnode
+        %_preun_service glacier2router
+fi
 
 %postun servers
-%_postun_groupdel  ice
-%_postun_userdel
+if [ "$1" -ge "1" ]; then
+        /sbin/service icegridregistry condrestart >/dev/null 2>&1 || :
+        /sbin/service icegridnode condrestart >/dev/null 2>&1 || :
+        /sbin/service glacier2router condrestart >/dev/null 2>&1 || :
+fi
 
-%files c++-devel
+%files
+%defattr(-,root,root,-)
+%{_defaultdocdir}/%{name}
+%{_bindir}/dumpdb
+%{_bindir}/glacier2router
+%{_bindir}/icebox
+%{_bindir}/iceboxadmin
+%{_bindir}/iceca
+%{_bindir}/icegridadmin
+%{_bindir}/icegridnode
+%{_bindir}/icegridregistry
+%{_bindir}/icepatch2calc
+%{_bindir}/icepatch2client
+%{_bindir}/icepatch2server
+%{_bindir}/icestormadmin
+%{_bindir}/icestormmigrate
+%{_bindir}/slice2docbook
+%{_bindir}/slice2html
+%{_bindir}/transformdb
+%{_datadir}/%{name}
+# Exclude the stuff that's in IceGrid
+%exclude %{_datadir}/%{name}/IceGridGUI.jar
+%{_mandir}/man1/dumpdb.1.*
+%{_mandir}/man1/glacier2router.1.*
+%{_mandir}/man1/icebox.1.*
+%{_mandir}/man1/iceboxadmin.1.*
+%{_mandir}/man1/icegridadmin.1.*
+%{_mandir}/man1/icegridnode.1.*
+%{_mandir}/man1/icegridregistry.1.*
+%{_mandir}/man1/icepatch2calc.1.*
+%{_mandir}/man1/icepatch2client.1.*
+%{_mandir}/man1/icepatch2server.1.*
+%{_mandir}/man1/icestormadmin.1.*
+%{_mandir}/man1/slice2docbook.1.*
+%{_mandir}/man1/slice2html.1.*
+%{_mandir}/man1/transformdb.1.*
+
+%files -n %{libname}
+%defattr(-,root,root)
+%{_libdir}/libFreeze.so.%{version}
+%{_libdir}/libFreeze.so.%{major}
+%{_libdir}/libGlacier2.so.%{version}
+%{_libdir}/libGlacier2.so.%{major}
+%{_libdir}/libIceBox.so.%{version}
+%{_libdir}/libIceBox.so.%{major}
+%{_libdir}/libIcePatch2.so.%{version}
+%{_libdir}/libIcePatch2.so.%{major}
+%{_libdir}/libIce.so.%{version}
+%{_libdir}/libIce.so.%{major}
+%{_libdir}/libIceSSL.so.%{version}
+%{_libdir}/libIceSSL.so.%{major}
+%{_libdir}/libIceStormService.so.%{version}
+%{_libdir}/libIceStormService.so.%{major}
+%{_libdir}/libIceStorm.so.%{version}
+%{_libdir}/libIceStorm.so.%{major}
+%{_libdir}/libIceUtil.so.%{version}
+%{_libdir}/libIceUtil.so.%{major}
+%{_libdir}/libIceXML.so.%{version}
+%{_libdir}/libIceXML.so.%{major}
+%{_libdir}/libSlice.so.%{version}
+%{_libdir}/libSlice.so.%{major}
+%{_libdir}/libIceGrid.so.%{version}
+%{_libdir}/libIceGrid.so.%{major}
+
+%files servers
+%defattr(-,root,root,-)
+%{_initrddir}/icegridregistry
+%{_initrddir}/icegridnode
+%{_initrddir}/glacier2router
+%config(noreplace) %{_sysconfdir}/icegridregistry.conf
+%config(noreplace) %{_sysconfdir}/icegridnode.conf
+%config(noreplace) %{_sysconfdir}/glacier2router.conf
+%dir %{_localstatedir}/lib/icegrid
+
+%files devel
 %defattr(-, root, root, -)
 %{_bindir}/slice2cpp
 %{_bindir}/slice2freeze
@@ -469,46 +479,305 @@ test -d %{_localstatedir}/lib/ice/icegrid/node1 || \
 %{_libdir}/libIcePatch2.so
 %{_libdir}/libIce.so
 %{_libdir}/libIceSSL.so
+%{_libdir}/libIceStormService.so
 %{_libdir}/libIceStorm.so
 %{_libdir}/libIceUtil.so
 %{_libdir}/libIceXML.so
 %{_libdir}/libSlice.so
+%{_mandir}/man1/slice2cpp.1.*
+%{_mandir}/man1/slice2freeze.1.*
 
-%files mono-devel
-%defattr(-, root, root, -)
+%files java
+%defattr(-,root,root,-)
+%{_javadir}/Ice-%{version}.jar
+%{_javadir}/Ice.jar
+
+%files -n icegrid-gui
+%defattr(-,root,root,-)
+%attr(755,root,root) %{_bindir}/icegridgui
+%{_datadir}/%{name}/IceGridGUI.jar
+%{_datadir}/applications/IceGridAdmin.desktop
+%{_datadir}/icons/hicolor/48x48/apps/icegrid.png
+%{_defaultdocdir}/icegrid-gui
+%{_mandir}/man1/icegridgui.1.*
+
+%files java-devel
+%defattr(-,root,root,-)
+%{_bindir}/slice2java
+%{_bindir}/slice2freezej
+%{_javadir}/ant-ice-%{version}.jar
+%{_javadir}/ant-ice.jar
+%{_mandir}/man1/slice2java.1.*
+%{_mandir}/man1/slice2freezej.1.*
+
+%files csharp
+%defattr(-,root,root,-)
+%{_libdir}/mono/Glacier2/
+%{_libdir}/mono/Ice/
+%{_libdir}/mono/IceBox/
+%{_libdir}/mono/IceGrid/
+%{_libdir}/mono/IcePatch2/
+%{_libdir}/mono/IceStorm/
+
+%{_libdir}/mono/gac/Glacier2
+%{_libdir}/mono/gac/Ice
+%{_libdir}/mono/gac/IceBox
+%{_libdir}/mono/gac/IceGrid
+%{_libdir}/mono/gac/IcePatch2
+%{_libdir}/mono/gac/IceStorm
+
+%{_libdir}/mono/gac/policy*
+
+%{_bindir}/iceboxnet.exe
+%{_mandir}/man1/iceboxnet.exe.1.*
+
+%files csharp-devel
+%defattr(-,root,root,-)
 %{_bindir}/slice2cs
-%{_libdir}/pkgconfig/Ice.pc
 %{_libdir}/pkgconfig/Glacier2.pc
+%{_libdir}/pkgconfig/Ice.pc
 %{_libdir}/pkgconfig/IceBox.pc
 %{_libdir}/pkgconfig/IceGrid.pc
 %{_libdir}/pkgconfig/IcePatch2.pc
 %{_libdir}/pkgconfig/IceStorm.pc
-%{_prefix}/lib/mono/Glacier2/
-%{_prefix}/lib/mono/Ice/
-%{_prefix}/lib/mono/IceBox/
-%{_prefix}/lib/mono/IceGrid/
-%{_prefix}/lib/mono/IcePatch2/
-%{_prefix}/lib/mono/IceStorm/
+%{_mandir}/man1/slice2cs.1.*
 
-%files python
-%defattr(-, root, root, -)
-%{python_sitearch}/Ice
-%{python_sitearch}/ice.pth
+%files -n python-%{name}
+%defattr(644,root,root,755)
+%{python_sitearch}/Ice/
+%{python_sitearch}/%{name}.pth
 
-%files python-devel
-%defattr(-, root, root, -)
+%files -n python-%{name}-devel
+%defattr(-,root,root,-)
 %{_bindir}/slice2py
+%{_mandir}/man1/slice2py.1.*
 
 %files ruby
-%defattr(-, root, root, -)
-%{ruby_sitearch}/*
+%defattr(644,root,root,755)
+%{ruby_sitearchdir}/*
 
 %files ruby-devel
-%defattr(-, root, root, -)
+%defattr(-,root,root,-)
 %{_bindir}/slice2rb
+%{_mandir}/man1/slice2rb.1.*
 
-%files php
-%defattr(-, root, root, -)
-%{_libdir}/php/modules/IcePHP.so
+%files -n php-%{name}
+%defattr(-,root,root,-)
+%{_libdir}/php/extensions/IcePHP.so
 %config(noreplace) %{_sysconfdir}/php.d/ice.ini
 
+%changelog
+* Mon Feb  1 2010 Mary Ellen Foster <mefoster at gmail.com> - 3.3.1-6
+- Fix the user name in the server scripts (bug 557411)
+
+* Sat Aug 22 2009 Tomas Mraz <tmraz@redhat.com> - 3.3.1-5
+- rebuilt with new openssl
+
+* Fri Jul 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.3.1-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_12_Mass_Rebuild
+
+* Mon Jul 13 2009 Remi Collet <Fedora@FamilleCollet.com> - 3.3.1-3
+- rebuild for new PHP 5.3.0 ABI (20090626) + ice-php53.patch
+- add PHP ABI check
+- use php_extdir
+
+* Wed Jul  8 2009 Mary Ellen Foster <mefoster at gmail.com> - 3.3.1-2
+- Include upstream patches:
+  - slice2html creates bad links
+  - slice compilers abort on symlinks and double backslashes
+  - random endpoint selection in .Net
+  See http://www.zeroc.com/forums/patches/ for details
+
+* Wed Mar 25 2009 Mary Ellen Foster <mefoster at gmail.com> - 3.3.1-1
+- Update to new upstream 3.3.1 release
+  - Includes all previous patches
+  - Support for serializable Java and .NET types in your Slice definitions
+  - Ability to use Ice for Java in an applet and to load IceSSL files, such
+    as keystores, from class path resources
+- Details at http://www.zeroc.com/download/Ice/3.3/Ice-3.3.1-RELEASE_NOTES
+
+* Tue Feb 24 2009 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.3.0-14
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_11_Mass_Rebuild
+
+* Mon Feb 23 2009 Mary Ellen Foster <mefoster at gmail.com> - 3.3.0-13
+- Explicitly BuildRequire OpenJDK to fix a build failure on rawhide
+- Fix author name in previous change log
+- No longer include ant.jar in the CLASSPATH for building (unnecessary)
+
+* Fri Feb  6 2009 Mary Ellen Foster <mefoster at gmail.com> - 3.3.0-12
+- Include Debian patch for GCC 4.4
+
+* Sat Jan 17 2009 Tomas Mraz <tmraz@redhat.com> - 3.3.0-11
+- rebuild with new openssl
+
+* Sat Jan 10 2009 Dennis Gilmore <dennis@ausil.us> - 3.3.0-10
+- ExcludeArch sparc64 no mono there
+
+* Thu Dec  4 2008 Ignacio Vazquez-Abrams <ivazqueznet+rpm@gmail.com> - 3.3.0-9
+- Rebuild for Python 2.6
+
+* Thu Dec  4 2008 <mefoster at gmail.com> - 3.3.0-8
+- Add all accumulated upstream patches
+
+* Thu Dec  4 2008 <mefoster at gmail.com> - 3.3.0-7
+- (Tiny) patch to support Python 2.6
+
+* Sat Nov 29 2008 Ignacio Vazquez-Abrams <ivazqueznet+rpm@gmail.com> - 3.3.0-6
+- Rebuild for Python 2.6
+
+* Tue Aug 12 2008 Mary Ellen Foster <mefoster at gmail.com> 3.3.0-5
+- Explicitly create build root so it builds on F10
+- Patch to build against DB4.7
+
+* Wed Jul 30 2008 Mary Ellen Foster <mefoster at gmail.com> 3.3.0-4
+- Re-add .pth file -- the alternative method involves editing auto-generated
+  files that say "don't edit" and I don't want to break other parts of Ice
+
+* Fri Jun 27 2008 Mary Ellen Foster <mefoster at gmail.com> 3.3.0-3
+- Bump release to fix tag problem and bad date
+- Add dist back to release field
+
+* Wed Jun 25 2008 Mary Ellen Foster <mefoster at gmail.com> 3.3.0-2
+- Add patch from ZeroC
+
+* Mon Jun  9 2008 Mary Ellen Foster <mefoster at gmail.com> 3.3.0-1
+- Update for 3.3 final
+- Fix ppc64 issues with directories in Mono .pc files (I hope)
+- Incorporate patches and man pages from Debian package
+
+* Tue May 06 2008 Mary Ellen Foster <mefoster at gmail.com> 3.3-0.1.b
+- Update for 3.3 beta prerelease
+- Fix Python sitelib/sitearch issues
+
+* Fri Feb 22 2008 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-17
+- Improved, less invasive patch based on the Debian one
+
+* Fri Feb 22 2008 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-16
+- Add includes so that it compiles with GCC 4.3
+
+* Tue Feb 19 2008 Fedora Release Engineering <rel-eng@fedoraproject.org> - 3.2.1-15
+- Autorebuild for GCC 4.3
+
+* Wed Dec 05 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-14
+- Version bump to rebuild because of changed OpenSSL in rawhide
+
+* Tue Nov 20 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-13
+- Enable the IceGrid GUI
+- Fix a problem with Python on 64-bit systems (bz #392751)
+- Incorporate one more Mono patch from ZeroC
+
+* Tue Oct 30 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-12
+- Put the slice2java classes into a .jar file instead of as bare classes
+- Incorporate all Ice 3.2.1 patches from ZeroC
+- Fix templates path in icegridregistry.conf
+
+* Fri Sep  7 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-11
+- Also add Obsoletes: for the old zeroc names
+- Fix bad date in changelog
+
+* Wed Aug 29 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-9
+- Add "with exceptions" to license tag
+- Minor typo corrections in README.Fedora
+- Move ruby sitearch files out of an "Ice/" subdirectory so that they're
+  actually useful
+
+* Tue Aug 28 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-8
+- Remove parallel make to see if that fixes build errors
+
+* Mon Aug 27 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-7
+- Fix over-zealous patch in csharp IceBox Makefile
+
+* Mon Aug 27 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-6
+- Put IcePy.so* into sitearch, not sitelib
+- Use %%ifarch in python file list to avoid duplicate warnings
+- Actually use gacutil for the Mono dlls instead of faking it
+
+* Fri Aug 24 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-5
+- Clean up packaging of icegridgui: it's a gui app, so we should treat it as
+  such (NB: building this package is still disabled by default because it needs
+  jgoodies)
+- Actually create the working directory for the Ice services
+- Remove redundant requires on java-devel and csharp-devel packages
+- Fix file list for python package to own directories too
+- Modified the README to accurately reflect what's in the Fedora package
+
+* Thu Aug 23 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-4
+- Whoops, ruby(abi) doesn't pull in ruby ...
+- Redirect getent output to /dev/null
+- Try again to remove execute permission on all *.ice files (????)
+- Move ImportKey.class out of bin and into share (not sure what it does, but I'm
+  pretty sure it doesn't belong in bin!)
+
+* Wed Aug 22 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-3
+- Changed BuildRequires on ruby to ruby(abi) = 1.8
+- Fixed all dependencies between subpackages: everything requires the base
+  package, and -devel packages should all require their corresponding non-devel
+  package now
+- Made ice-csharp require pkgconfig
+- Modified the user/group creation process based on the wiki
+- Removed ldconfig for ice-c++-devel subpackage
+- Made the python_sitelib subdirectory owned by ice-python
+- Removed executable permission on all files under slice (how did that happen?)
+- Fixed typo on ice-csharp group
+- Changed license tag to GPLv2
+- Removed macros in changelog
+- Set CFLAGS as well as CPPFLAGS for make so that building icecpp gets the 
+  correct flags too
+- Renamed ice-c++-devel to ice-devel
+- Added Provides: for ice-c++-devel and ice-dotnet for people moving from the
+  ZeroC RPMs
+- Also don't build "test" or "demo" for IceCS
+
+* Sun Aug 18 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-2
+- ExcludeArch ppc64
+- Fix one more hard-coding problem for x86_64
+
+* Thu Aug 16 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.1-1
+- Update to 3.2.1
+
+* Wed Aug  1 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.0-7
+- Fixed arch-specific issues:
+  - %%ifnarch ppc64 in a lot of places; it doesn't have db4-java or mono-core,
+    so no Java or CSharp packages
+  - Replaced one literal "lib" with %%{_lib}
+- Added IceGrid registry patch from ZeroC forum
+- Don't build "test" or "demo" subdirectories
+- Use "/sbin/ldconfig" instead of %%{_sbindir} because that's /usr/sbin (also
+  for other things like /sbin/service etc)
+- Removed useless "dotnetversion" define (it's the same as "version")
+- Remove executable bit on all "*.ice" files (it gets set somehow on a few)
+
+* Tue Jul 31 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.0-6
+- Updated to incorporate more suggestions from Mamoru Tasaka (sorry for the delay!)
+- Include Java and C# stuff in the single SRPM (NB: they'll no longer be noarch)
+
+* Mon Jul  9 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.0-5
+- Updated following review comments from Mamoru Tasaka
+- Renamed file to "ice.spec"
+- Use %%{_libdir} instead of literal "lib"/"lib64" (not yet tested on 64-bit
+  system)
+- Changed "make" calls to use the correct compiler flags (including -fPIC)
+- Changed "cp" to "cp -p" everywhere for timestamps
+- Use more macros instead of hard-coded directory names: 
+  %%_prefix, %%_libdir, %%_initrddir, %%_localstatedir, %%_sbindir
+- Un-excluded *.pyo files
+
+* Wed Jun 13 2007 Mary Ellen foster <mefoster at gmail.com> 3.2.0-4
+- Removed cruft so that it no longer tries to build Java stuff (whoops)
+
+* Wed Apr 18 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.0-3
+- Use RPM macros instead of /etc and /usr/bin (Thanks to Peter Lemenkov)
+- Suggestions from ZeroC forum (http://zeroc.com/forums/showthread.php?t=3095):
+  - Use Python site-packages directory
+  - Create "iceuser" user
+  - Split /etc/init.d services into a separate sub-package
+- Follow guidelines from Fedora wiki about packaging Ruby
+  - Use Ruby site-arch directory
+  - Depend on ruby(abi)
+- Make sure to compile all Java files with -source 1.4 -target 1.4
+
+* Wed Apr 11 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.0-2
+- Remove "assert" in Java classes for compilation with Java 1.4
+
+* Fri Mar 30 2007 Mary Ellen Foster <mefoster at gmail.com> 3.2.0-1
+- Initial spec, based on spec distributed by ZeroC
