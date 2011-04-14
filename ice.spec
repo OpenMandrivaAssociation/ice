@@ -3,7 +3,7 @@
 
 Name:		ice
 Version:	3.3.1
-Release:	%mkrel 4
+Release:	%mkrel 5
 Summary:	The Ice base runtime and services
 
 Group:		Networking/WWW
@@ -122,7 +122,7 @@ Summary:	The Ice runtime for Java
 Group:		System/Libraries
 Requires:	java >= 1.5.0
 Requires:	%{libname} = %{version}-%{release}
-Requires:	db4.8
+Requires:	db5.1
 %description java
 The Ice runtime for Java
 
