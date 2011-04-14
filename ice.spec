@@ -39,6 +39,7 @@ Patch7:         Ice-3.3.1-openssl.patch
 Patch8:		Ice-rpmbuild-3.3.1-fix-initscripts-for-mdv.patch
 
 Patch9:         ice-3.3.1-fix-db-include.patch
+Patch10:	Ice-3.3.1-gcc46.patch
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -212,6 +213,7 @@ The Ice runtime for PHP applications.
 %patch6 -p1
 %patch7 -p1
 %patch9 -p1
+%patch10 -p1
 %setup -q -n Ice-rpmbuild-%{version} -T -b 1
 %patch8 -p1 -b .formdv
 %setup -q -n Ice-3.3.0-man-pages -T -b 2
