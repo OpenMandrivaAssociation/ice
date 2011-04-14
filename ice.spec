@@ -46,8 +46,8 @@ BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
 # sparc64 doesnt have mono
 ExcludeArch:    ppc64 sparc64
 
-BuildRequires:	db4-devel
-BuildRequires:	db4.8
+BuildRequires:	db-devel
+BuildRequires:	db5.1
 BuildRequires:	expat-devel
 BuildRequires:	openssl-devel
 BuildRequires:	bzip2-devel
@@ -218,7 +218,7 @@ The Ice runtime for PHP applications.
 
 %build
 # Set the CLASSPATH correctly for the Java compile
-export CLASSPATH=`build-classpath db4.8 jgoodies-forms jgoodies-looks`
+export CLASSPATH=`build-classpath db5.1 jgoodies-forms jgoodies-looks`
 
 # Set JAVA_HOME
 export JAVA_HOME=%{java_home}
