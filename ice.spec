@@ -3,7 +3,7 @@
 
 Name:		ice
 Version:	3.3.1
-Release:	%mkrel 6
+Release:	7
 Summary:	The Ice base runtime and services
 
 Group:		Networking/WWW
