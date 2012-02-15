@@ -57,10 +57,7 @@ BuildRequires:	ant-nodeps
 BuildRequires:	jpackage-utils
 BuildRequires:	php
 BuildRequires:	php-devel
-BuildRequires:	ruby >= 1.8
-BuildRequires:	ruby < 1.9
-BuildRequires:	ruby-devel >= 1.8
-BuildRequires:	ruby-devel < 1.9
+BuildRequires:	ruby-devel
 BuildRequires:	python-devel
 BuildRequires:	mono
 BuildRequires:	mono-devel
