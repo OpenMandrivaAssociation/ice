@@ -49,6 +49,7 @@ Patch7:		ice-3.4.2-gcc47.patch
 Patch8:		Ice-rpmbuild-3.3.1-fix-initscripts-for-mdv.patch
 
 Patch9:		Ice-3.4.2-db5-support.patch
+Patch10:	Ice-3.4.2-string-format-fixes.patch
 
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
@@ -228,6 +229,7 @@ The Ice runtime for PHP applications.
 %patch6 -p1 -b .php54
 %patch7 -p1
 %patch9 -p1 -b .db5~
+%patch10 -p1 -b .str_fmt~
 #patch8 -p1 -b .formdv
 
 %build
