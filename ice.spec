@@ -74,6 +74,7 @@ BuildRequires:	dos2unix
 
 BuildRequires:	java-rpmbuild
 
+BuildRequires:	jgoodies-common
 BuildRequires:	jgoodies-forms
 BuildRequires:	jgoodies-looks
 BuildRequires:	imagemagick
