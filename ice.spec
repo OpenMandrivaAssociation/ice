@@ -1,5 +1,6 @@
 %define major 34
 %define libname %mklibname %{name} %{major}
+%define	manpage_version	3.4.2
 
 Name:		ice
 Version:	3.4.2
@@ -11,7 +12,7 @@ License:	GPLv2 with exceptions
 URL:		http://www.zeroc.com/
 Source0:	http://www.zeroc.com/download/Ice/3.3/Ice-%{version}.tar.gz
 # Man pages courtesy of Francisco Moya's Debian packages
-Source1:	ice-3.4.2-man-pages.tar.gz
+Source1:	ice-%{manpage_version}-man-pages.tar.gz
 Source2:	icegridgui
 Source3:	IceGridAdmin.desktop
 Source4:	Ice-README.Fedora
@@ -55,14 +56,14 @@ Patch10:	Ice-3.4.2-string-format-fixes.patch
 # sparc64 doesnt have mono
 ExcludeArch:	ppc64 sparc64
 
-BuildRequires:	db-devel
+BuildRequires:	db53-devel
 BuildRequires:	expat-devel
 BuildRequires:	openssl-devel
 BuildRequires:	bzip2-devel
 BuildRequires:	ant
-BuildRequires:	ant-nodeps
+#BuildRequires:	ant-nodeps
 BuildRequires:	jpackage-utils
-BuildRequires:	php
+BuildRequires:	php-cli
 BuildRequires:	php-devel
 BuildRequires:	ruby-devel
 BuildRequires:	python-devel
@@ -236,29 +237,27 @@ export CFLAGS="%{optflags} -I%{_includedir}/db53"
 export JAVA_HOME=%{java_home}
 
 # Compile the main Ice runtime
-cd %{_builddir}/Ice-%{version}
-
-make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" embedded_runpath_prefix=""
+make CXXFLAGS="$CFLAGS -fPIC -fpermissive" CFLAGS="$CFLAGS -fPIC -fpermissive" embedded_runpath_prefix="" libsubdir=%{_lib}
 
 # Rebuild the Java ImportKey class
-cd %{_builddir}/Ice-%{version}/cpp/src/ca
+pushd cpp/src/ca
 rm *.class
 javac ImportKey.java
+popd
 
 # Create the IceGrid icon
-cd %{_builddir}/Ice-%{version}/java
-cd resources/icons
+pushd java/resources/icons
 convert icegrid.ico temp.png
 mv temp-8.png icegrid.png
 rm temp*.png
+popd
 
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}
 
 # Do the basic "make install"
-cd %{_builddir}/Ice-%{version}
-make prefix=%{buildroot} GACINSTALL=yes GAC_ROOT=%{buildroot}%{_libdir} embedded_runpath_prefix="" install
+make prefix=%{buildroot} GACINSTALL=yes GAC_ROOT=%{buildroot}%{_libdir} embedded_runpath_prefix="" libsubdir=%{_lib} install
 
 # Move Java stuff where it should be
 mkdir -p %{buildroot}%{_javadir}
@@ -271,7 +270,7 @@ ln -s Ice-%{version}.jar %{buildroot}%{_javadir}/Ice.jar
 mkdir -p %{buildroot}%{_datadir}/%{name}
 mv %{buildroot}/lib/IceGridGUI.jar %{buildroot}%{_datadir}/%{name}
 mkdir -p %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/
-cp -p %{_builddir}/Ice-%{version}/java/resources/icons/icegrid.png \
+cp -p java/resources/icons/icegrid.png \
         %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/
 mkdir -p %{buildroot}%{_bindir}
 cp -p %{SOURCE108} %{buildroot}%{_bindir}
@@ -283,16 +282,19 @@ desktop-file-install \
 # Move other rpm-specific files into the right place (README, service stuff)
 mkdir -p %{buildroot}%{_defaultdocdir}/%{name}
 cp -p %{SOURCE110} %{buildroot}/%{_defaultdocdir}/%{name}/README.Mandriva
-cp -p %{_builddir}/Ice-rpmbuild-%{version}/ice.ini %{buildroot}/ice.ini
+cp -p %{SOURCE11} %{buildroot}/ice.ini
 
-# Install the servers
+mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_sysconfdir}
-cp -p %{_builddir}/Ice-rpmbuild-%{version}/*.conf %{buildroot}%{_sysconfdir}
-mkdir -p %{buildroot}%{_initrddir}
-for i in icegridregistry icegridnode glacier2router
-do
-    cp -p %{_builddir}/Ice-rpmbuild-%{version}/$i.redhat %{buildroot}%{_initrddir}/$i
-done
+## glacier2router
+install -p -m0644 %{SOURCE5} %{buildroot}%{_sysconfdir}
+install -p -m0644 %{SOURCE6} %{buildroot}%{_unitdir}
+## icegridnode
+install -p -m0644 %{SOURCE7} %{buildroot}%{_sysconfdir}
+install -p -m0644 %{SOURCE8} %{buildroot}%{_unitdir}
+## icegridregistry
+install -p -m0644 %{SOURCE9} %{buildroot}%{_sysconfdir}
+install -p -m0644 %{SOURCE10} %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_localstatedir}/lib/icegrid
 
 # "make install" assumes it's going into a directory under /opt.
@@ -312,7 +314,8 @@ mv %{buildroot}/help/IceGridAdmin %{buildroot}%{_defaultdocdir}/icegrid-gui
 
 # Copy the man pages into the correct directory
 mkdir -p %{buildroot}%{_mandir}/man1
-cp -p %{_builddir}/Ice-3.3.0-man-pages/*.1 %{buildroot}%{_mandir}/man1
+rm -f ice-%{manpage_version}-man-pages/slice2docbook.1
+cp -p ice-%{manpage_version}-man-pages/*.1 %{buildroot}%{_mandir}/man1
 
 # Fix the encoding and line-endings of all the IceGridAdmin documentation files
 cd %{buildroot}%{_defaultdocdir}/icegrid-gui/IceGridAdmin
@@ -331,15 +334,26 @@ done
 # .NET spec files (for csharp-devel) -- convert the paths
 for f in IceGrid Glacier2 IceBox Ice IceStorm IcePatch2;
 do 
-    sed -i -e "s#/lib/#%{_libdir}/#" %{buildroot}%{_libdir}/pkgconfig/$f.pc
-    sed -i -e "s#mono_root}/usr#mono_root}#" %{buildroot}%{_libdir}/pkgconfig/$f.pc
+	mv %{buildroot}%{_bindir}/$f.xml \
+		%{buildroot}%{_prefix}/lib/mono/gac/$f/%{version}.*/
+	# fix xml files permissions
+	chmod 0644 %{buildroot}%{_prefix}/lib/mono/gac/$f/%{version}.*/*.xml
+	#sed -i -e "s#/lib/#%{_libdir}/#" %{buildroot}%{_libdir}/pkgconfig/$f.pc
+	#sed -i -e "s#mono_root}/usr#mono_root}#" %{buildroot}%{_libdir}/pkgconfig/$f.pc
 done
 
 # Put the PHP stuff into the right place
-mkdir -p %{buildroot}%{_sysconfdir}/php.d
-mv %{buildroot}/ice.ini %{buildroot}%{_sysconfdir}/php.d
-mkdir -p %{buildroot}%{_libdir}/php/extensions/
-mv %{buildroot}%{_libdir}/IcePHP.so %{buildroot}%{_libdir}/php/extensions/
+#mkdir -p %{buildroot}%{_sysconfdir}/php.d
+#mv %{buildroot}/ice.ini %{buildroot}%{_sysconfdir}/php.d
+#mkdir -p %{buildroot}%{_libdir}/php/extensions/
+#mv %{buildroot}%{_libdir}/IcePHP.so %{buildroot}%{_libdir}/php/extensions/
+install -D -p -m0644 %{SOURCE11} \
+	%{buildroot}%{_sysconfdir}/php.d/%{name}.ini
+install -D -p -m0755 %{buildroot}/php/IcePHP.so \
+	%{buildroot}%{php_extdir}/IcePHP.so
+rm -f %{buildroot}/php/IcePHP.so
+mkdir -p %{buildroot}%{_datadir}/php
+mv %{buildroot}/php/* %{buildroot}%{_datadir}/php
 
 # Also Ruby and Python -- remove all shebang lines while we're at it
 for f in %{buildroot}/python/Ice.py %{buildroot}/ruby/*.rb;
@@ -351,7 +365,10 @@ mkdir -p %{buildroot}%{ruby_sitearchdir}
 mv %{buildroot}/ruby/* %{buildroot}%{ruby_sitearchdir}
 mkdir -p %{buildroot}%{python_sitearch}/Ice
 mv %{buildroot}/python/* %{buildroot}%{python_sitearch}/Ice
-cp -p %{_builddir}/Ice-rpmbuild-%{version}/ice.pth %{buildroot}%{python_sitearch}
+cp -p %{SOURCE12} %{buildroot}%{python_sitearch}
+# fix permissions for Python/Ruby C extensions libraries
+chmod 0755 %{buildroot}%{python_sitearch}/Ice/IcePy.so*
+chmod 0755 %{buildroot}%{ruby_vendorarchdir}/IceRuby.so*
 
 mkdir -p %{buildroot}%{_datadir}/%{name}
 mv %{buildroot}/config/* %{buildroot}%{_datadir}/%{name}
@@ -453,9 +470,9 @@ fi
 %{_libdir}/libIceGrid.so.%{major}
 
 %files servers
-%{_initrddir}/icegridregistry
-%{_initrddir}/icegridnode
-%{_initrddir}/glacier2router
+%{_unitdir}/icegridregistry.service
+%{_unitdir}/icegridnode.service
+%{_unitdir}/glacier2router.service
 %config(noreplace) %{_sysconfdir}/icegridregistry.conf
 %config(noreplace) %{_sysconfdir}/icegridnode.conf
 %config(noreplace) %{_sysconfdir}/glacier2router.conf
