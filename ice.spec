@@ -51,8 +51,6 @@ Patch8:		Ice-rpmbuild-3.3.1-fix-initscripts-for-mdv.patch
 Patch9:		Ice-3.4.2-db5-support.patch
 Patch10:	Ice-3.4.2-string-format-fixes.patch
 
-BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
-
 # Ice doesn't officially support ppc64 at all
 # sparc64 doesnt have mono
 ExcludeArch:	ppc64 sparc64
@@ -72,9 +70,7 @@ BuildRequires:	mono
 BuildRequires:	mono-devel
 BuildRequires:	mcpp-devel >= 2.7.1
 BuildRequires:	dos2unix
-
 BuildRequires:	java-rpmbuild
-
 BuildRequires:	jgoodies-common
 BuildRequires:	jgoodies-forms
 BuildRequires:	jgoodies-looks
@@ -256,7 +252,6 @@ convert icegrid.ico temp.png
 mv temp-8.png icegrid.png
 rm temp*.png
 
-
 %install
 rm -rf %{buildroot}
 mkdir -p %{buildroot}
@@ -271,7 +266,6 @@ mv %{buildroot}/lib/ant-ice.jar %{buildroot}%{_javadir}/ant-ice-%{version}.jar
 ln -s ant-ice-%{version}.jar %{buildroot}%{_javadir}/ant-ice.jar
 mv %{buildroot}/lib/Ice.jar %{buildroot}%{_javadir}/Ice-%{version}.jar
 ln -s Ice-%{version}.jar %{buildroot}%{_javadir}/Ice.jar
-
 
 # Install the IceGrid GUI
 mkdir -p %{buildroot}%{_datadir}/%{name}
@@ -374,10 +368,6 @@ mkdir -p %{buildroot}%{_defaultdocdir}/%{name}
 mv %{buildroot}/ICE_LICENSE %{buildroot}%{_defaultdocdir}/%{name}/ICE_LICENSE
 mv %{buildroot}/LICENSE %{buildroot}%{_defaultdocdir}/%{name}/LICENSE
 
-
-%clean
-rm -rf %{buildroot}
-
 %pre servers
 %_pre_useradd iceuser %{_localstatedir}/lib/icegrid /bin/sh
 
@@ -401,7 +391,6 @@ if [ "$1" -ge "1" ]; then
 fi
 
 %files
-%defattr(-,root,root,-)
 %{_defaultdocdir}/%{name}
 %{_bindir}/dumpdb
 %{_bindir}/glacier2router
@@ -438,7 +427,6 @@ fi
 %{_mandir}/man1/transformdb.1.*
 
 %files -n %{libname}
-%defattr(-,root,root)
 %{_libdir}/libFreeze.so.%{version}
 %{_libdir}/libFreeze.so.%{major}
 %{_libdir}/libGlacier2.so.%{version}
@@ -465,7 +453,6 @@ fi
 %{_libdir}/libIceGrid.so.%{major}
 
 %files servers
-%defattr(-,root,root,-)
 %{_initrddir}/icegridregistry
 %{_initrddir}/icegridnode
 %{_initrddir}/glacier2router
@@ -475,7 +462,6 @@ fi
 %dir %{_localstatedir}/lib/icegrid
 
 %files devel
-%defattr(-, root, root, -)
 %{_bindir}/slice2cpp
 %{_bindir}/slice2freeze
 %{_includedir}/Freeze
@@ -505,12 +491,10 @@ fi
 %{_mandir}/man1/slice2freeze.1.*
 
 %files java
-%defattr(-,root,root,-)
 %{_javadir}/Ice-%{version}.jar
 %{_javadir}/Ice.jar
 
 %files -n icegrid-gui
-%defattr(-,root,root,-)
 %attr(755,root,root) %{_bindir}/icegridgui
 %{_datadir}/%{name}/IceGridGUI.jar
 %{_datadir}/applications/IceGridAdmin.desktop
@@ -519,7 +503,6 @@ fi
 %{_mandir}/man1/icegridgui.1.*
 
 %files java-devel
-%defattr(-,root,root,-)
 %{_bindir}/slice2java
 %{_bindir}/slice2freezej
 %{_javadir}/ant-ice-%{version}.jar
@@ -528,28 +511,23 @@ fi
 %{_mandir}/man1/slice2freezej.1.*
 
 %files csharp
-%defattr(-,root,root,-)
 %{_libdir}/mono/Glacier2/
 %{_libdir}/mono/Ice/
 %{_libdir}/mono/IceBox/
 %{_libdir}/mono/IceGrid/
 %{_libdir}/mono/IcePatch2/
 %{_libdir}/mono/IceStorm/
-
 %{_libdir}/mono/gac/Glacier2
 %{_libdir}/mono/gac/Ice
 %{_libdir}/mono/gac/IceBox
 %{_libdir}/mono/gac/IceGrid
 %{_libdir}/mono/gac/IcePatch2
 %{_libdir}/mono/gac/IceStorm
-
 %{_libdir}/mono/gac/policy*
-
 %{_bindir}/iceboxnet.exe
 %{_mandir}/man1/iceboxnet.exe.1.*
 
 %files csharp-devel
-%defattr(-,root,root,-)
 %{_bindir}/slice2cs
 %{_libdir}/pkgconfig/Glacier2.pc
 %{_libdir}/pkgconfig/Ice.pc
@@ -565,7 +543,6 @@ fi
 %{python_sitearch}/%{name}.pth
 
 %files -n python-%{name}-devel
-%defattr(-,root,root,-)
 %{_bindir}/slice2py
 %{_mandir}/man1/slice2py.1.*
 
@@ -574,11 +551,9 @@ fi
 %{ruby_sitearchdir}/*
 
 %files ruby-devel
-%defattr(-,root,root,-)
 %{_bindir}/slice2rb
 %{_mandir}/man1/slice2rb.1.*
 
 %files -n php-%{name}
-%defattr(-,root,root,-)
 %{_libdir}/php/extensions/IcePHP.so
 %config(noreplace) %{_sysconfdir}/php.d/ice.ini
