@@ -1,54 +1,62 @@
-%define major 33
+%define major 34
 %define libname %mklibname %{name} %{major}
 
 Name:		ice
-Version:	3.3.1
-Release:	7
+Version:	3.4.2
+Release:	1
 Summary:	The Ice base runtime and services
 
 Group:		Networking/WWW
 License:	GPLv2 with exceptions
 URL:		http://www.zeroc.com/
 Source0:	http://www.zeroc.com/download/Ice/3.3/Ice-%{version}.tar.gz
-# Extracted from http://zeroc.com/download/Ice/3.3/ice-3.3.1-1.src.rpm
-Source1:        Ice-rpmbuild-%{version}.tar.gz
 # Man pages courtesy of Francisco Moya's Debian packages
-Source2:        Ice-3.3.0-man-pages.tbz
-Source8:        icegridgui
-Source9:        IceGridAdmin.desktop
-Source10:       Ice-README.Mandriva
-# Don't build the demo or test directories
-Patch0:         Ice-3.3-dont-build-demo-test.patch
-# Don't put manifest in jar; don't build demo or test; use system jgoodies
-Patch1:         Ice-3.3.1-java-build.patch
+Source1:	ice-3.4.2-man-pages.tar.gz
+Source2:	icegridgui
+Source3:	IceGridAdmin.desktop
+Source4:	Ice-README.Fedora
+Source5:	glacier2router.conf
+Source6:	glacier2router.service
+Source7:	icegridnode.conf
+Source8:	icegridnode.service
+Source9:	icegridregistry.conf
+Source10:	icegridregistry.service
+Source11:	ice.ini
+Source12:	ice.pth
+Source108:	icegridgui
+Source109:	IceGridAdmin.desktop
+Source110:	Ice-README.Mandriva
 # Remove reference to Windows L&F
-Patch2:         Ice-3.3.1-jgoodies.patch
-# http://www.zeroc.com/forums/patches/4275-patch-1-ice-3-3-1-slice2html-creates-bad-links.html
-Patch3:         ice-3.3.1-patch1.txt
-# http://www.zeroc.com/forums/patches/4340-patch-2-ice-3-3-1-slice-compilers-abort.html
-Patch4:         slice.patch.txt
-# http://www.zeroc.com/forums/patches/4423-patch-3-ice-3-3-1-net-only-fix-random-endpoint-selection.html
-Patch5:         patch-rand.txt
-
-Patch6:         ice-php53.patch
-
-Patch7:         Ice-3.3.1-openssl.patch
+Patch0:		ice-3.4.2-jgoodies.patch
+# fix gcc46 issue
+Patch1:		ice-3.4.2-gcc46.patch
+# Add support for the s390/s390x architecture
+Patch2:		Ice-3.4.0-s390.patch
+# don't build demo/test
+# TODO: should we keep it or not ?
+# significantly reduce compile time but shipping demos could be useful
+Patch3:		Ice-3.3-dont-build-demo-test.patch
+# disable the CSharp interface
+Patch4:		ice-3.4.1-no-mono.patch
+# fix java 7 compilation
+Patch5:		ice-3.4.2-java7.patch
+# fix php 5.4 compilation (from upstream)
+Patch6:		ice-3.4.2-php54.patch
+Patch7:		ice-3.4.2-gcc47.patch
 
 # Fix redhat initscripts for mdv and change user in server scripts 
 # from "ice" to "iceuser" to match the config
 Patch8:		Ice-rpmbuild-3.3.1-fix-initscripts-for-mdv.patch
 
-Patch9:         ice-3.3.1-fix-db-include.patch
-Patch10:	Ice-3.3.1-gcc46.patch
+Patch9:		ice-3.3.1-fix-db-include.patch
 
-BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-buildroot
+BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 
 # Ice doesn't officially support ppc64 at all
 # sparc64 doesnt have mono
-ExcludeArch:    ppc64 sparc64
+ExcludeArch:	ppc64 sparc64
 
 BuildRequires:	db-devel
-BuildRequires:	db5.1
 BuildRequires:	expat-devel
 BuildRequires:	openssl-devel
 BuildRequires:	bzip2-devel
@@ -64,12 +72,12 @@ BuildRequires:	mono-devel
 BuildRequires:	mcpp-devel >= 2.7.1
 BuildRequires:	dos2unix
 
-BuildRequires:  java-rpmbuild
+BuildRequires:	java-rpmbuild
 
-BuildRequires:  jgoodies-forms
+BuildRequires:	jgoodies-forms
 BuildRequires:	jgoodies-looks
-BuildRequires:  imagemagick
-BuildRequires:  desktop-file-utils
+BuildRequires:	imagemagick
+BuildRequires:	desktop-file-utils
 
 Requires:	%{libname} = %{version}-%{release}
 
@@ -85,14 +93,14 @@ firewall solution, and much more.
 
 # All of the other Ice packages also get built by this SRPM.
 
-%package -n %{libname}
+%package -n	%{libname}
 Summary:	Ice shared libraries
 Group:		System/Libraries
 
-%description -n %{libname}
+%description -n	%{libname}
 This package contains Ice shared libraries.
 
-%package servers
+%package	servers
 Summary:	Ice services to run through /etc/rc.d/init.d
 Group:		Development/Other
 Requires:	%{name} = %{version}-%{release}
@@ -101,36 +109,40 @@ Requires(pre):	shadow-utils
 # Requirements for the init.d services
 %if %mdkversion < 201010
 Requires(post):	rpm-helper
-Requires(preun): rpm-helper
+Requires(preun):rpm-helper
 %endif
-%description servers
+
+%description	servers
 Ice services to run through /etc/rc.d/init.d
 
-%package devel
+%package	devel
 Summary:	Tools for developing Ice applications in C++
 Group:		Development/C++
 Provides:	ice-c++-devel = %{version}-%{release}
 Requires:	%{libname} = %{version}-%{release}
-%description devel
+
+%description	devel
 Tools for developing Ice applications in C++.
 
-%package java
+%package	java
 Summary:	The Ice runtime for Java
 Group:		System/Libraries
 Requires:	java >= 1.5.0
 Requires:	%{libname} = %{version}-%{release}
-Requires:	db5.1
-%description java
+Requires:	db5.3
+
+%description	java
 The Ice runtime for Java
 
-%package java-devel
+%package	java-devel
 Summary:	Tools for developing Ice applications in Java
 Group:		Development/Java
 Requires:	%{name}-java = %{version}-%{release}
-%description java-devel
+
+%description	java-devel
 Tools for developing Ice applications in Java.
 
-%package -n icegrid-gui
+%package -n	icegrid-gui
 Summary:	IceGrid Admin Tool
 Group:		Development/Other
 Requires:	java
@@ -139,92 +151,95 @@ Requires:	%{libname} = %{version}-%{release}
 Requires:	jgoodies-forms
 Requires:	jgoodies-looks
 Requires:	jpackage-utils
+
 %description -n icegrid-gui
 Graphical administration tool for IceGrid
 
-%package csharp
+%package	csharp
 Summary:	The Ice runtime for C#
 Group:		System/Libraries
 Provides:	ice-dotnet = %{version}-%{release}
 Requires:	%{libname} = %{version}-%{release}
 Requires:	mono >= 1.2.2
-%description csharp
+
+%description	csharp
 The Ice runtime for C#
 
-%package csharp-devel
+%package	csharp-devel
 Summary:	Tools for developing Ice applications in C#
 Group:		Development/Other
 Requires:	%{name}-csharp = %{version}-%{release}
 Requires:	pkgconfig
-%description csharp-devel
+
+%description	csharp-devel
 Tools for developing Ice applications in C#.
 
-%package ruby
+%package	ruby
 Summary:	The Ice runtime for Ruby applications
 Group:		Development/Ruby
 Requires:	%{libname} = %{version}-%{release}
-Requires:	ruby >= 1.8
-Requires:	ruby < 1.9
-%description ruby
+
+%description	ruby
 The Ice runtime for Ruby applications.
 
-%package ruby-devel
+%package	ruby-devel
 Summary:	Tools for developing Ice applications in Ruby
 Group:		Development/Ruby
 Requires:	%{name}-ruby = %{version}-%{release}
-%description ruby-devel
+
+%description	ruby-devel
 Tools for developing Ice applications in Ruby.
 
-%package -n python-%{name}
+%package -n	python-%{name}
 Summary:	The Ice runtime for Python applications
 Group:		Development/Python
 Requires:	%{libname} = %{version}-%{release}
 Requires:	python >= 2.3.4
-%description -n python-%{name}
+
+%description -n	python-%{name}
 The Ice runtime for Python applications.
 
-%package -n python-%{name}-devel
+%package -n	python-%{name}-devel
 Summary:	Tools for developing Ice applications in Python
 Group:		Development/Python
 Requires:	python-%{name} = %{version}-%{release}
-%description -n python-%{name}-devel
+
+%description -n	python-%{name}-devel
 Tools for developing Ice applications in Python.
 
-%package -n php-%{name}
+%package -n	php-%{name}
 Summary:	The Ice runtime for PHP applications
 Group:		System/Libraries
 Requires:	%{libname} = %{version}-%{release}
 Requires:	php
 
-%description -n php-%{name}
+%description -n	php-%{name}
 The Ice runtime for PHP applications.
 
 %prep
-%setup -n Ice-%{version} -q
+%setup -n Ice-%{version} -q -a1
 %patch0 -p1
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
 %patch4 -p1
 %patch5 -p1
-%patch6 -p1
+%patch6 -p1 -b .php54
 %patch7 -p1
-%patch9 -p1
-%patch10 -p1
-%setup -q -n Ice-rpmbuild-%{version} -T -b 1
-%patch8 -p1 -b .formdv
-%setup -q -n Ice-3.3.0-man-pages -T -b 2
+#patch9 -p1
+#patch8 -p1 -b .formdv
 
 %build
 # Set the CLASSPATH correctly for the Java compile
-export CLASSPATH=`build-classpath db5.1 jgoodies-forms jgoodies-looks`
-
+export CLASSPATH=`build-classpath db5.3 jgoodies-forms jgoodies-looks`
+export CFLAGS="%{optflags} -I%{_includedir}/db53"
 # Set JAVA_HOME
 export JAVA_HOME=%{java_home}
 
 # Compile the main Ice runtime
 cd %{_builddir}/Ice-%{version}
-make CXXFLAGS="%{optflags} -fPIC" CFLAGS="%{optflags} -fPIC" embedded_runpath_prefix=""
+
+make CFLAGS="$CFLAGS" CXXFLAGS="$CFLAGS" embedded_runpath_prefix=""
 
 # Rebuild the Java ImportKey class
 cd %{_builddir}/Ice-%{version}/cpp/src/ca
@@ -262,15 +277,15 @@ mkdir -p %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/
 cp -p %{_builddir}/Ice-%{version}/java/resources/icons/icegrid.png \
         %{buildroot}%{_datadir}/icons/hicolor/48x48/apps/
 mkdir -p %{buildroot}%{_bindir}
-cp -p %{SOURCE8} %{buildroot}%{_bindir}
+cp -p %{SOURCE108} %{buildroot}%{_bindir}
 sed -i -e "s#DIR#%{_datadir}/%{name}#" %{buildroot}%{_bindir}/icegridgui
 desktop-file-install \
         --dir=%{buildroot}%{_datadir}/applications \
-        %{SOURCE9}
+        %{SOURCE109}
 
 # Move other rpm-specific files into the right place (README, service stuff)
 mkdir -p %{buildroot}%{_defaultdocdir}/%{name}
-cp -p %{SOURCE10} %{buildroot}/%{_defaultdocdir}/%{name}/README.Mandriva
+cp -p %{SOURCE110} %{buildroot}/%{_defaultdocdir}/%{name}/README.Mandriva
 cp -p %{_builddir}/Ice-rpmbuild-%{version}/ice.ini %{buildroot}/ice.ini
 
 # Install the servers
