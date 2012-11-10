@@ -1,0 +1,17 @@
+--- Ice-3.4.2/cpp/src/Freeze/MapI.cpp.db5~	2012-02-17 03:51:33.242770071 +0100
++++ Ice-3.4.2/cpp/src/Freeze/MapI.cpp	2012-02-17 03:32:52.069818234 +0100
+@@ -1487,14 +1487,7 @@ Freeze::MapHelperI::size() const
+ 
+     try
+     {
+-#if DB_VERSION_MAJOR != 4
+-#error Freeze requires DB 4.x
+-#endif
+-#if DB_VERSION_MINOR < 3
+-        _db->stat(&s, 0);
+-#else
+         _db->stat(_connection->dbTxn(), &s, 0);
+-#endif
+     }
+     catch(const ::DbException& dx)
+     {

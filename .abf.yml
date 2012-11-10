@@ -1,0 +1,15 @@
+sources:
+  "glacier2router.conf:"	59f98f5d14e5b2b40a18aba740f97ae5e20bbb9e
+  "glacier2router.service:"	0a4c1e1659d34aa139ecd506d363bb59c66e3baa
+  "ice-3.4.2-man-pages.tar.gz:"	5fcaf3ec92ba7e22d26053cdedf4163a4ba2e704
+  "Ice-3.4.2.tar.gz:"	8c84d6e3b227f583d05e08251e07047e6c3a6b42
+  "IceGridAdmin.desktop:"	3bd5f4deab19eca22cd066aa92554c553fb74f31
+  "icegridgui:"	b89542adfdd2ec130d2f0896851257d0b8f52eac
+  "icegridnode.conf:"	ea99d818e410747f0bbdb6214213fc4562ef59cf
+  "icegridnode.service:"	0501c9d09d45e37f60772c34169123e30a13dbe2
+  "icegridregistry.conf:"	d7ab22499ec8523e683ce878c90bcc1c76d3f691
+  "icegridregistry.service:"	692816de88e8cd5da02b5e725dd36cfd66d359b1
+  "ice.ini:"	64c7e1a4fa68545b7d0523e1e2cb4b0446c79d04
+  "ice.pth:"	b9e5d687d978176628cc51846113373f7453b607
+  "Ice-README.Fedora:"	71393dbda7c3a3369c02195211488de8bf07c43f
+  "Ice-README.Mandriva:"	71393dbda7c3a3369c02195211488de8bf07c43f

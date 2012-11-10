@@ -1,0 +1,106 @@
+diff -p -up Ice-rpmbuild-3.3.1/glacier2router.redhat.formdv Ice-rpmbuild-3.3.1/glacier2router.redhat
+--- Ice-rpmbuild-3.3.1/glacier2router.redhat.formdv	2009-03-20 18:52:18.000000000 +0100
++++ Ice-rpmbuild-3.3.1/glacier2router.redhat	2010-02-11 15:16:03.000000000 +0100
+@@ -5,10 +5,17 @@
+ # glacier2router    This shell script takes care of starting and 
+ #                   stopping the glacier2router daemon.
+ #
+-# chkconfig: - 62 74
+-# description: The Glacier2 router daemon. \
+-# Glacier2 is the firewall traversal service for the Internet \ 
+-# Communications Engine (Ice).
++### BEGIN INIT INFO
++# Provides:          glacier2router
++# Required-Start:    $network
++# Required-Stop:     $network
++# Default-Start:     3 5
++# Default-Stop:      0 1 2 6
++# Short-Description: Start the Glacier2 router daemon.
++# Description:       The Glacier2 router daemon.
++#       Glacier2 is the firewall traversal service for the Internet
++#       Communications Engine (Ice).
++### END INIT INFO
+ 
+ #
+ # Source function library.
+@@ -19,7 +26,7 @@
+ # The Glacier2 router user; root is allowed, but not necessary, therefore
+ # it is recommended to use a non-root account.
+ #
+-user=ice
++user=iceuser
+ 
+ #
+ # Ask for a password at startup?
+diff -p -up Ice-rpmbuild-3.3.1/icegridnode.redhat.formdv Ice-rpmbuild-3.3.1/icegridnode.redhat
+--- Ice-rpmbuild-3.3.1/icegridnode.redhat.formdv	2009-03-20 18:52:18.000000000 +0100
++++ Ice-rpmbuild-3.3.1/icegridnode.redhat	2010-02-11 15:17:22.000000000 +0100
+@@ -5,11 +5,18 @@
+ # icegridnode   This shell script takes care of starting and 
+ #               stopping the icegridnode daemon.
+ #
+-# chkconfig: - 61 75
+-# description: The IceGrid node daemon. \
+-# IceGrid is the server deployment and monitoring for the Internet \
+-# Communications Engine (Ice). An IceGrid domain consists of one master \
+-# registry, zero or more slave registries, and zero or more IceGrid nodes.
++### BEGIN INIT INFO
++# Provides:          icegridnode
++# Required-Start:    $network icegridregistry
++# Required-Stop:     $network icegridregistry
++# Default-Start:     3 5
++# Default-Stop:      0 1 2 6
++# Short-Description: Start the IceGrid node daemon.
++# Description:       The IceGrid node daemon.
++#       IceGrid is the server deployment and monitoring for the Internet
++#       Communications Engine (Ice). An IceGrid domain consists of one master
++#       registry, zero or more slave registries, and zero or more IceGrid nodes.
++### END INIT INFO
+ 
+ #
+ # Source function library.
+@@ -20,7 +27,7 @@
+ # The IceGrid node user; root is allowed, but not necessary, therefore
+ # it is recommended to use a non-root account.
+ #
+-user=ice
++user=iceuser
+ 
+ #
+ # Ask for a password at startup?
+diff -p -up Ice-rpmbuild-3.3.1/icegridregistry.redhat.formdv Ice-rpmbuild-3.3.1/icegridregistry.redhat
+--- Ice-rpmbuild-3.3.1/icegridregistry.redhat.formdv	2009-03-20 18:52:18.000000000 +0100
++++ Ice-rpmbuild-3.3.1/icegridregistry.redhat	2010-02-11 15:18:32.000000000 +0100
+@@ -5,11 +5,18 @@
+ # icegridregistry   This shell script takes care of starting and 
+ #                   stopping the icegridregistry daemon.
+ #
+-# chkconfig: - 60 76
+-# description: The IceGrid registry daemon. \
+-# IceGrid is the server deployment and monitoring for the Internet \
+-# Communications Engine (Ice). An IceGrid domain consists of one master \
+-# registry, zero or more slave registries, and zero or more IceGrid nodes.
++### BEGIN INIT INFO
++# Provides:          icegridregistry
++# Required-Start:    $network
++# Required-Stop:     $network
++# Default-Start:     3 5
++# Default-Stop:      0 1 2 6
++# Short-Description: Start the IceGrid registry daemon.
++# Description:       The IceGrid registry daemon.
++#       IceGrid is the server deployment and monitoring for the Internet
++#       Communications Engine (Ice). An IceGrid domain consists of one master
++#       registry, zero or more slave registries, and zero or more IceGrid nodes.
++### END INIT INFO
+ 
+ #
+ # Source function library.
+@@ -20,7 +27,7 @@
+ # The IceGrid registry user; root is allowed, but not necessary, therefore
+ # it is recommended to use a non-root account.
+ #
+-user=ice
++user=iceuser
+ 
+ #
+ # Ask for a password at startup?

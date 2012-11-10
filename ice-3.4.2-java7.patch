@@ -1,0 +1,26 @@
+diff --git a/java/src/IceInternal/OutgoingConnectionFactory.java b/java/src/IceInternal/OutgoingConnectionFactory.java
+index 2036c08..c4bc58f 100644
+--- a/java/src/IceInternal/OutgoingConnectionFactory.java
++++ b/java/src/IceInternal/OutgoingConnectionFactory.java
+@@ -17,7 +17,7 @@ public final class OutgoingConnectionFactory
+     private static class MultiHashMap<K, V> extends java.util.HashMap<K, java.util.List<V>>
+     {
+         public void
+-        put(K key, V value)
++        put_(K key, V value)
+         {
+             java.util.List<V> list = this.get(key);
+             if(list == null)
+@@ -693,9 +693,9 @@ public final class OutgoingConnectionFactory
+             throw ex;
+ 	}
+ 
+-        _connections.put(ci.connector, connection);
+-        _connectionsByEndpoint.put(connection.endpoint(), connection);
+-        _connectionsByEndpoint.put(connection.endpoint().compress(true), connection);
++        _connections.put_(ci.connector, connection);
++        _connectionsByEndpoint.put_(connection.endpoint(), connection);
++        _connectionsByEndpoint.put_(connection.endpoint().compress(true), connection);
+         return connection;
+     }
+ 
