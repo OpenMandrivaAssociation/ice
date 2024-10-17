@@ -9,7 +9,7 @@ Summary:	The Ice base runtime and services
 
 Group:		Networking/WWW
 License:	GPLv2 with exceptions
-URL:		http://www.zeroc.com/
+URL:		https://www.zeroc.com/
 Source0:	http://www.zeroc.com/download/Ice/3.3/Ice-%{version}.tar.gz
 # Man pages courtesy of Francisco Moya's Debian packages
 Source1:	ice-%{manpage_version}-man-pages.tar.gz
