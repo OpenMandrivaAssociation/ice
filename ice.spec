@@ -56,6 +56,7 @@ Patch10:	Ice-3.4.2-string-format-fixes.patch
 # sparc64 doesnt have mono
 ExcludeArch:	ppc64 sparc64
 
+BuildRequires:	make
 BuildRequires:	db53-devel
 BuildRequires:	expat-devel
 BuildRequires:	openssl-devel
